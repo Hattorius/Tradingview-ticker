@@ -24,7 +24,7 @@ class ticker:
         await self.authenticate()
         while True:
             message = await self.readMessage(await self.connection.recv())
-            print(message)
+            print(message) # To do: remove this, only for testing purposes
             self.parseMessage(message)
 
     # Convert message string to object
@@ -104,6 +104,3 @@ class ticker:
     # stop it :(
     def stop(self):
         self.loop.stop()
-
-tick = ticker()
-tick.start()
