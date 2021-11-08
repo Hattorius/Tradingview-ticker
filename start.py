@@ -14,8 +14,7 @@ class ticker:
 
     # Connect to websocket
     async def connect(self):
-        #self.connection = await websockets.connect("wss://data.tradingview.com/socket.io/websocket", origin="https://www.tradingview.com")
-        self.connection = await websockets.connect("ws://localhost:8080", origin="https://www.tradingview.com")
+        self.connection = await websockets.connect("wss://data.tradingview.com/socket.io/websocket", origin="https://www.tradingview.com")
         await self.waitForMessages()
         await asyncio.Future()
 
@@ -105,10 +104,6 @@ class ticker:
     def stop(self):
         self.loop.stop()
 
-# for i in range(50):
-#     print(i+1)
-#     tick = ticker()
-#     tick.start()
 
 tick = ticker()
 tick.start()
