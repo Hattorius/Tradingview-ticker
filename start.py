@@ -103,7 +103,3 @@ class ticker:
     # stop it :(
     def stop(self):
         self.loop.stop()
-
-
-tick = ticker()
-tick.start()
