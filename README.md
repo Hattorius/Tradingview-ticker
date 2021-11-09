@@ -1,3 +1,4 @@
+![Visitors](https://visitor-badge.laobi.icu/badge?page_id=Hattorius.Tradingview-ticker)
 # Tradingview-ticker
 Reverse engineered connection to the TradingView ticker in Python. Makes a websocket connection to the Tradeview website and receives price & volume updates realtime. Developed & tested in Python 3.9.5 (So didn't test others)
 
