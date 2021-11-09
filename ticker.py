@@ -109,7 +109,10 @@ class ticker:
 
         t = threading.Thread(target=_start, args=(self.loop,))
         t.start()
+        self.thread = t
 
     # stop it :(
     def stop(self):
+        self.task.cancel()
         self.loop.stop()
+        self.thread.join()
