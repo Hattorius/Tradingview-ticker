@@ -7,6 +7,7 @@ Reverse engineered connection to the TradingView ticker in Python. Makes a webso
 * [Installing](#installing)
 * [Quick example](#quick-example)
 * [Documentation](https://github.com/Hattorius/Tradingview-ticker/wiki/API-Reference)
+* [License](#license)
 
 ## Features
 * Keeps websocket connection alive
@@ -55,3 +56,6 @@ while (True): # Print out prices & volumes every 2 seconds
     print(tick.states)
     time.sleep(2)
 ```
+
+## License
+This project is licensed under the GNU GPLv3 License - see the [LICENSE](LICENSE) file for details. 
