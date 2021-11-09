@@ -1,5 +1,8 @@
+![Visitors](https://visitor-badge.laobi.icu/badge?page_id=Hattorius.Tradingview-ticker)
 # Tradingview-ticker
 Reverse engineered connection to the TradingView ticker in Python. Makes a websocket connection to the Tradeview website and receives price & volume updates realtime. Developed & tested in Python 3.9.5 (So didn't test others)
+
+**Make sure the main thread keeps running!! If required just do `while True: pass`. The program will quit if you don't do so!**
 
 ## Table of contents
 * [Features](#features)
@@ -7,6 +10,7 @@ Reverse engineered connection to the TradingView ticker in Python. Makes a webso
 * [Installing](#installing)
 * [Quick example](#quick-example)
 * [Documentation](https://github.com/Hattorius/Tradingview-ticker/wiki/API-Reference)
+* [License](#license)
 
 ## Features
 * Keeps websocket connection alive
@@ -55,3 +59,6 @@ while (True): # Print out prices & volumes every 2 seconds
     print(tick.states)
     time.sleep(2)
 ```
+
+## License
+This project is licensed under the GNU GPLv3 License - see the [LICENSE](LICENSE) file for details. 
