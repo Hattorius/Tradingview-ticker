@@ -1,13 +1,15 @@
-import asyncio, websockets, random, json, threading
+import asyncio, websockets, random, json, threading, time, sqlite3
 
 def createRandomToken(length=12):
     chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
     return ''.join(random.choice(chars) for i in range(length))
 
+def getEpoch():
+    return int(time.time())
 
 class ticker:
     
-    def __init__(self, symbols='BINANCE:BTCUSDT'):
+    def __init__(self, symbols='BINANCE:BTCUSDT', save=False, database_name='database.db'):
         self.loop = asyncio.get_event_loop()
         if isinstance(symbols, str):
             symbols = ['BINANCE:BTCUSDT']
@@ -15,6 +17,35 @@ class ticker:
         self.states = {}
         for symbol in symbols:
             self.states[symbol] = {'volume': 0, 'price': 0, 'change': 0, 'changePercentage': 0}
+        self.save = save
+        self.connected = False
+        self.database_name = database_name
+
+    # Connect to database
+    async def connectToDatabase(self):
+        if self.save:
+            self.db = sqlite3.connect(self.database_name)
+            self.createSqlite3Table()
+            self.connected = True
+
+    # Create Sqlite3 table
+    def createSqlite3Table(self):
+        self.db.execute("""CREATE TABLE IF NOT EXISTS ticker_data (
+            volume real NOT NULL,
+            price real NOT NULL,
+            ticker text NOT NULL,
+            timestamp integer NOT NULL
+        )""")
+
+    # Insert data into table
+    def insertData(self, volume, price, ticker):
+        if self.save:
+            try:
+                self.db.execute("INSERT INTO ticker_data VALUES (?, ?, ?, ?)", (volume, price, ticker, getEpoch()))
+                self.db.commit()
+            except sqlite3.Error as er:
+                print('SQLite error: %s' % (' '.join(er.args)))
+                print("Exception class is: ", er.__class__)
 
     # Connect to websocket
     async def connect(self):
@@ -25,6 +56,8 @@ class ticker:
     # Loop waiting for messages
     async def waitForMessages(self):
         await self.authenticate()
+        if self.save and not self.connected:
+            await self.connectToDatabase()
         while True:
             messages = await self.readMessage(await self.connection.recv())
             for message in messages:
@@ -98,6 +131,7 @@ class ticker:
             self.states[symbol]['change'] = data['ch']
         except KeyError:
              self.states[symbol]['change'] += 0
+        self.insertData(self.states[symbol]['volume'], self.states[symbol]['price'], symbol)
 
     # start ticker in new thread
     def start(self):
@@ -116,3 +150,4 @@ class ticker:
         self.task.cancel()
         self.loop.stop()
         self.thread.join()
+        self.db.close()
