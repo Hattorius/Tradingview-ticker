@@ -9,7 +9,7 @@ def getEpoch():
 
 class ticker:
     
-    def __init__(self, symbols='BINANCE:BTCUSDT', save=False, database_name='database.db'):
+    def __init__(self, symbols='BINANCE:BTCUSDT', save=False, database_name='database.db', split_symbols=False):
         self.loop = asyncio.get_event_loop()
         if isinstance(symbols, str):
             symbols = ['BINANCE:BTCUSDT']
@@ -20,6 +20,7 @@ class ticker:
         self.save = save
         self.connected = False
         self.database_name = database_name
+        self.split_symbols = split_symbols
 
     # Connect to database
     async def connectToDatabase(self):
@@ -30,22 +31,29 @@ class ticker:
 
     # Create Sqlite3 table
     def createSqlite3Table(self):
-        self.db.execute("""CREATE TABLE IF NOT EXISTS ticker_data (
-            volume real NOT NULL,
-            price real NOT NULL,
-            ticker text NOT NULL,
-            timestamp integer NOT NULL
-        )""")
+        if self.split_symbols:
+            for symbol in self.symbols:
+                self.db.execute("""CREATE TABLE IF NOT EXISTS '{}' (
+                    volume real NOT NULL,
+                    price real NOT NULL,
+                    timestamp integer NOT NULL
+                )""".format(symbol))
+        else:
+            self.db.execute("""CREATE TABLE IF NOT EXISTS ticker_data (
+                volume real NOT NULL,
+                price real NOT NULL,
+                ticker text NOT NULL,
+                timestamp integer NOT NULL
+            )""")
 
     # Insert data into table
     def insertData(self, volume, price, ticker):
         if self.save:
-            try:
+            if self.split_symbols:
+                self.db.execute("INSERT INTO '"+ticker+"' VALUES (?, ?, ?)", (volume, price, getEpoch()))
+            else:
                 self.db.execute("INSERT INTO ticker_data VALUES (?, ?, ?, ?)", (volume, price, ticker, getEpoch()))
-                self.db.commit()
-            except sqlite3.Error as er:
-                print('SQLite error: %s' % (' '.join(er.args)))
-                print("Exception class is: ", er.__class__)
+            self.db.commit()
 
     # Connect to websocket
     async def connect(self):
