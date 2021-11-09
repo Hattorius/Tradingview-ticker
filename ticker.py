@@ -1,4 +1,5 @@
 import asyncio, websockets, random, json, threading, time, sqlite3
+from datetime import datetime
 
 def createRandomToken(length=12):
     chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -9,7 +10,7 @@ def getEpoch():
 
 class ticker:
     
-    def __init__(self, symbols='BINANCE:BTCUSDT', save=False, database_name='database.db', split_symbols=False):
+    def __init__(self, symbols='BINANCE:BTCUSDT', save=False, database_name='database.db', split_symbols=False, verbose=False):
         self.loop = asyncio.get_event_loop()
         if isinstance(symbols, str):
             symbols = ['BINANCE:BTCUSDT']
@@ -21,6 +22,10 @@ class ticker:
         self.connected = False
         self.database_name = database_name
         self.split_symbols = split_symbols
+
+        self.verbose = verbose
+        if verbose:
+            self.saves = 0
 
     # Connect to database
     async def connectToDatabase(self):
@@ -140,6 +145,15 @@ class ticker:
         except KeyError:
              self.states[symbol]['change'] += 0
         self.insertData(self.states[symbol]['volume'], self.states[symbol]['price'], symbol)
+        if self.verbose:
+            self.saves += 1
+
+    # send status messages every 5 seconds if enabled
+    async def giveAnUpdate(self):
+        while True:
+            await asyncio.sleep(5)
+            print("{}: Watching {} tickers → received {} updates".format(datetime.now().strftime("%d/%m/%Y %H:%M:%S"), len(self.symbols), self.saves))
+            self.saves = 0
 
     # start ticker in new thread
     def start(self):
@@ -147,6 +161,8 @@ class ticker:
         def _start(loop):
             asyncio.set_event_loop(loop)
             self.task = loop.create_task(self.connect())
+            if self.verbose:
+                self.updateTask = loop.create_task(self.giveAnUpdate())
             loop.run_forever()
 
         t = threading.Thread(target=_start, args=(self.loop,))
@@ -156,6 +172,8 @@ class ticker:
     # stop it :(
     def stop(self):
         self.task.cancel()
+        if self.verbose:
+            self.updateTask.cancel()
         self.loop.stop()
         self.thread.join()
         self.db.close()
