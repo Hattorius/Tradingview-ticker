@@ -16,6 +16,7 @@ Reverse engineered connection to the TradingView ticker in Python. Makes a webso
 * Keeps websocket connection alive
 * Can watch multiple tickers on the same time
 * Doesn't cooldown / ratelimit
+* Sqlite3 intergration to save ticker(s) data
 * Easy to use
 * Stable **ASF** *(it's still running after writing all this stuff so it's good enough for me)*
 
