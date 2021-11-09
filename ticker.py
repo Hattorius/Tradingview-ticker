@@ -13,7 +13,7 @@ class ticker:
     def __init__(self, symbols='BINANCE:BTCUSDT', save=False, database_name='database.db', split_symbols=False, verbose=False):
         self.loop = asyncio.get_event_loop()
         if isinstance(symbols, str):
-            symbols = ['BINANCE:BTCUSDT']
+            symbols = [symbols]
         self.symbols = symbols
         self.states = {}
         for symbol in symbols:
