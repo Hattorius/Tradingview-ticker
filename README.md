@@ -23,7 +23,7 @@ Reverse engineered connection to the TradingView ticker in Python. Makes a webso
 ## Prerequisites
 * [Python 3.8+](https://www.python.org/downloads/)
 
-Make sure Python is added to your PATH on Windows, more info [here](https://superuser.com/questions/143119/how-do-i-add-python-to-the-windows-path) if you didn't let it set the PATH at install.
+Make sure Python is added to your PATH on Windows, more info [here](https://superuser.com/a/143121) if you didn't let it set the PATH at install.
 
 ## Installing
 Please install the requirements:
