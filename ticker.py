@@ -2,7 +2,7 @@ import asyncio, websockets, random, json, threading, time, sqlite3
 from datetime import datetime
 
 def createRandomToken(length=12):
-    chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
+    chars = "abcdefghijklmnopqrstuvwxyz0123456789"
     return ''.join(random.choice(chars) for i in range(length))
 
 def getEpoch():
@@ -10,18 +10,20 @@ def getEpoch():
 
 class ticker:
     
-    def __init__(self, symbols='BINANCE:BTCUSDT', save=False, database_name='database.db', split_symbols=False, verbose=False):
-        self.loop = asyncio.get_event_loop()
+    def __init__(self, symbols="BINANCE:BTCUSDT", save=False, database_name="database.db", split_symbols=False, verbose=False):
         if isinstance(symbols, str):
             symbols = [symbols]
-        self.symbols = symbols
+        
         self.states = {}
         for symbol in symbols:
-            self.states[symbol] = {'volume': 0, 'price': 0, 'change': 0, 'changePercentage': 0, 'time': 0}
+            self.states[symbol] = {"volume": 0, "price": 0, "change": 0, "changePercentage": 0, "time": 0}
+        
+        self.loop = asyncio.get_event_loop()
+        self.symbols = symbols
         self.save = save
         self.connected = False
-        self.database_name = database_name
-        self.split_symbols = split_symbols
+        self.databaseName = database_name
+        self.splitSymbols = split_symbols
         self.cb = None
 
         self.verbose = verbose
@@ -31,19 +33,19 @@ class ticker:
     # Connect to database
     async def connectToDatabase(self):
         if self.save:
-            self.db = sqlite3.connect(self.database_name)
+            self.db = sqlite3.connect(self.databaseName)
             self.createSqlite3Table()
             self.connected = True
 
     # Create Sqlite3 table
     def createSqlite3Table(self):
-        if self.split_symbols:
+        if self.splitSymbols:
             for symbol in self.symbols:
-                self.db.execute("""CREATE TABLE IF NOT EXISTS '{}' (
+                self.db.execute(f"""CREATE TABLE IF NOT EXISTS '{symbol}' (
                     volume real NOT NULL,
                     price real NOT NULL,
                     timestamp integer NOT NULL
-                )""".format(symbol))
+                )""")
         else:
             self.db.execute("""CREATE TABLE IF NOT EXISTS ticker_data (
                 volume real NOT NULL,
@@ -61,8 +63,8 @@ class ticker:
             self.cb(ticker, self.states[ticker])
             
         if self.save:
-            if self.split_symbols:
-                self.db.execute("INSERT INTO '"+ticker+"' VALUES (?, ?, ?)", (volume, price, time))
+            if self.splitSymbols:
+                self.db.execute(f"INSERT INTO '{ticker}' VALUES (?, ?, ?)", (volume, price, time))
             else:
                 self.db.execute("INSERT INTO ticker_data VALUES (?, ?, ?, ?)", (volume, price, ticker, time))
             self.db.commit()
@@ -84,21 +86,21 @@ class ticker:
 
     # Convert message string to object
     async def readMessage(self, message):
-        messages = message.split('~m~')
+        messages = message.split("~m~")
         messagesObj = []
         for message in messages:
             if '{' in message or '[' in message:
                 messagesObj.append(json.loads(message))
             else:
-                if '~h~' in message:
-                    await self.connection.send("~m~{}~m~{}".format(len(message), message))
+                if "~h~" in message:
+                    await self.connection.send(f"~m~{len(message)}~m~{message}")
 
         return messagesObj
 
     # Convert object to message string
     def createMessage(self, name, params):
         message = json.dumps({'m': name, 'p': params})
-        return "~m~{}~m~{}".format(len(message), message)
+        return f"~m~{len(message)}~m~{message}"
 
     # Send message
     async def sendMessage(self, name, params):
@@ -107,15 +109,15 @@ class ticker:
 
     # Send authentication messages and subscribe to price & bars
     async def authenticate(self):
-        self.cs = 'cs_' + createRandomToken()
+        self.cs = "cs_" + createRandomToken()
 
         await self.sendMessage("set_auth_token", ["unauthorized_user_token"])
         await self.sendMessage("chart_create_session", [self.cs, ""])
         for symbol in self.symbols:
-            qs = 'qs_' + createRandomToken()
+            qs = "qs_" + createRandomToken()
             await self.sendMessage("quote_create_session", [qs])
-            await self.sendMessage("quote_set_fields", [qs, "ch","chp","current_session","description","local_description","language","exchange","fractional","is_tradable","lp","lp_time","minmov","minmove2","original_name","pricescale","pro_name","short_name","type","update_mode","volume","currency_code","rchp","rtc"])
-            await self.sendMessage("quote_add_symbols",[qs, symbol, {"flags":['force_permission']}])
+            await self.sendMessage("quote_set_fields", [qs, "ch", "chp", "current_session", "description", "local_description", "language", "exchange", "fractional", "is_tradable", "lp", "lp_time", "minmov", "minmove2", "original_name", "pricescale", "pro_name", "short_name", "type", "update_mode", "volume", "currency_code", "rchp", "rtc"])
+            await self.sendMessage("quote_add_symbols",[qs, symbol, {"flags":["force_permission"]}])
             await self.sendMessage("quote_fast_symbols", [qs, symbol])
         return 0
 
@@ -126,7 +128,7 @@ class ticker:
         except KeyError:
             return
 
-        if message['m'] == 'qsd':
+        if message['m'] == "qsd":
             self.forTicker(message)
 
     # parse ticker data
@@ -135,27 +137,27 @@ class ticker:
         data = receivedData['p'][1]['v']
         
         try:
-            self.states[symbol]['volume'] = data['volume']
+            self.states[symbol]["volume"] = data["volume"]
         except KeyError:
             pass
         try:
-            self.states[symbol]['price'] = data['lp']
+            self.states[symbol]["price"] = data["lp"]
         except KeyError:
             pass
         try:
-            self.states[symbol]['changePercentage'] = data['chp']
+            self.states[symbol]["changePercentage"] = data["chp"]
         except KeyError:
             pass
         try:
-            self.states[symbol]['change'] = data['ch']
+            self.states[symbol]["change"] = data["ch"]
         except KeyError:
              pass
         try:
-            self.states[symbol]['time'] = data['lp_time']
+            self.states[symbol]["time"] = data["lp_time"]
         except KeyError:
             pass
         
-        self.insertData(self.states[symbol]['volume'], self.states[symbol]['price'], symbol, self.states[symbol]['time'])
+        self.insertData(self.states[symbol]["volume"], self.states[symbol]["price"], symbol, self.states[symbol]["time"])
         
         if self.verbose:
             self.saves += 1
@@ -164,7 +166,7 @@ class ticker:
     async def giveAnUpdate(self):
         while True:
             await asyncio.sleep(5)
-            print("{}: Watching {} tickers → received {} updates".format(datetime.now().strftime("%d/%m/%Y %H:%M:%S"), len(self.symbols), self.saves))
+            print(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')}: Watching {len(self.symbols)} tickers → received {self.saves} updates")
             self.saves = 0
 
     # start ticker in new thread
