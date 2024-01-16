@@ -70,7 +70,7 @@ Track multiple symbols like Bitcoin and Apple:
 import time
 from ticker import ticker
 
-tick = ticker(["BINANCE:BTCUSDT","NASDAQ:AAPL"])
+tick = ticker(["BINANCE:BTCUSDT", "NASDAQ:AAPL"])
 tick.start()
 
 while True:
