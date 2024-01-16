@@ -136,26 +136,18 @@ class ticker:
         symbol = receivedData['p'][1]['n']
         data = receivedData['p'][1]['v']
         
-        try:
-            self.states[symbol]["volume"] = data["volume"]
-        except KeyError:
-            pass
-        try:
-            self.states[symbol]["price"] = data["lp"]
-        except KeyError:
-            pass
-        try:
-            self.states[symbol]["changePercentage"] = data["chp"]
-        except KeyError:
-            pass
-        try:
-            self.states[symbol]["change"] = data["ch"]
-        except KeyError:
-             pass
-        try:
-            self.states[symbol]["time"] = data["lp_time"]
-        except KeyError:
-            pass
+        items = {
+            "volume": "volume",
+            "price": "lp",
+            "changePercentage": "chp",
+            "change": "ch",
+            "time": "lp_time"
+        }
+        
+        for key, data_key in items.items():
+            value = data.get(data_key)
+            if value is not None:
+                self.states[symbol][key] = value
         
         self.insertData(self.states[symbol]["volume"], self.states[symbol]["price"], symbol, self.states[symbol]["time"])
         
