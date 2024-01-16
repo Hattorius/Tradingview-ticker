@@ -22,6 +22,7 @@ class ticker:
         self.connected = False
         self.database_name = database_name
         self.split_symbols = split_symbols
+        self.cb = None
 
         self.verbose = verbose
         if verbose:
@@ -56,6 +57,9 @@ class ticker:
         if time is None:
             time = getEpoch()
             
+        if self.cb is not None:
+            self.cb(ticker, self.states[ticker])
+            
         if self.save:
             if self.split_symbols:
                 self.db.execute("INSERT INTO '"+ticker+"' VALUES (?, ?, ?)", (volume, price, time))
@@ -67,7 +71,6 @@ class ticker:
     async def connect(self):
         self.connection = await websockets.connect("wss://data.tradingview.com/socket.io/websocket", origin="https://www.tradingview.com")
         await self.waitForMessages()
-        await asyncio.Future()
 
     # Loop waiting for messages
     async def waitForMessages(self):
@@ -118,19 +121,19 @@ class ticker:
 
     # this is so fricking messy
     def parseMessage(self, message):
-        if message is None: return
         try:
             message['m']
         except KeyError:
-            return None
+            return
 
         if message['m'] == 'qsd':
             self.forTicker(message)
 
     # parse ticker data
-    def forTicker(self, receiveddata):
-        symbol = receiveddata['p'][1]['n']
-        data = receiveddata['p'][1]['v']
+    def forTicker(self, receivedData):
+        symbol = receivedData['p'][1]['n']
+        data = receivedData['p'][1]['v']
+        
         try:
             self.states[symbol]['volume'] = data['volume']
         except KeyError:
@@ -151,7 +154,9 @@ class ticker:
             self.states[symbol]['time'] = data['lp_time']
         except KeyError:
             pass
+        
         self.insertData(self.states[symbol]['volume'], self.states[symbol]['price'], symbol, self.states[symbol]['time'])
+        
         if self.verbose:
             self.saves += 1
 

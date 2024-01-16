@@ -79,6 +79,32 @@ while True:
     time.sleep(2)
 ```
 
+### Ticker callback
+In addition to simply retrieving and storing data, "Tradingview-ticker" also allows for real-time data processing through a callback mechanism. This feature is particularly useful for users who wish to perform immediate analysis, display, or further processing of ticker data as soon as it's received. Below is an example of how to implement a callback function:
+```py
+import time
+from ticker import ticker
+
+# Define a callback function to handle incoming ticker data
+def handleTicker(ticker_name, data):
+    # data contains information such as volume, price, change, etc.
+    print(f"Ticker update! {ticker_name}: {data}")
+    pass
+
+# Initialize the ticker object for a specific ticker
+tick = ticker("BINANCE:BTCUSDT")
+
+# Assign the callback function
+tick.cb = handleTicker
+
+# Start the ticker to receive data
+tick.start()
+
+# Run an infinite loop to keep the main thread alive
+while True:
+    time.sleep(1)
+```
+
 ## Documentation
 Further details and API reference can be found [here](https://github.com/Hattorius/Tradingview-ticker/wiki/API-Reference).
 
