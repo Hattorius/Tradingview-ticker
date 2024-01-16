@@ -44,7 +44,7 @@ from ticker import ticker
 tick = ticker("BINANCE:BTCUSDT")
 tick.start()
 
-while (True): # Print out prices & volumes every 2 seconds
+while True: # Print out prices & volumes every 2 seconds
     print(tick.states) # Example: {'BINANCE:BTCUSDT': {'volume': 2089.98057, 'price': 67715.07, 'change': 189.24, 'changePercentage': 0.28}}
     time.sleep(2)
 ```
@@ -56,7 +56,7 @@ from ticker import ticker
 tick = ticker(["BINANCE:BTCUSDT","NASDAQ:AAPL"])
 tick.start()
 
-while (True): # Print out prices & volumes every 2 seconds
+while True: # Print out prices & volumes every 2 seconds
     print(tick.states) # Example: {'BINANCE:BTCUSDT': {'volume': 2089.98057, 'price': 67715.07, 'change': 189.24, 'changePercentage': 0.28}, 'NASDAQ:AAPL': {'volume': 59039175, 'price': 151, 'change': 1, 'changePercentage': 0.67}}
     time.sleep(2)
 ```
