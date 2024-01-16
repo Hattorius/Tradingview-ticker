@@ -45,7 +45,7 @@ tick = ticker("BINANCE:BTCUSDT")
 tick.start()
 
 while True: # Print out prices & volumes every 2 seconds
-    print(tick.states) # Example: {'BINANCE:BTCUSDT': {'volume': 2089.98057, 'price': 67715.07, 'change': 189.24, 'changePercentage': 0.28}}
+    print(tick.states) # Example: {'BINANCE:BTCUSDT': {'volume': 7234.88273, 'price': 42759.18, 'change': 248.08, 'changePercentage': 0.58, 'time': 1705390590}}
     time.sleep(2)
 ```
 ### Multiple Symbols
@@ -57,7 +57,7 @@ tick = ticker(["BINANCE:BTCUSDT","NASDAQ:AAPL"])
 tick.start()
 
 while True: # Print out prices & volumes every 2 seconds
-    print(tick.states) # Example: {'BINANCE:BTCUSDT': {'volume': 2089.98057, 'price': 67715.07, 'change': 189.24, 'changePercentage': 0.28}, 'NASDAQ:AAPL': {'volume': 59039175, 'price': 151, 'change': 1, 'changePercentage': 0.67}}
+    print(tick.states) # Example: {'BINANCE:BTCUSDT': {'volume': 7247.69177, 'price': 42749.32, 'change': 238.22, 'changePercentage': 0.56, 'time': 1705390650}, 'NASDAQ:AAPL': {'volume': 40477782, 'price': 185.92, 'change': 0.33, 'changePercentage': 0.18, 'time': 1705107599}}
     time.sleep(2)
 ```
 

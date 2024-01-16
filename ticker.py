@@ -17,7 +17,7 @@ class ticker:
         self.symbols = symbols
         self.states = {}
         for symbol in symbols:
-            self.states[symbol] = {'volume': 0, 'price': 0, 'change': 0, 'changePercentage': 0}
+            self.states[symbol] = {'volume': 0, 'price': 0, 'change': 0, 'changePercentage': 0, 'time': 0}
         self.save = save
         self.connected = False
         self.database_name = database_name
@@ -52,12 +52,15 @@ class ticker:
             )""")
 
     # Insert data into table
-    def insertData(self, volume, price, ticker):
+    def insertData(self, volume, price, ticker, time = None):
+        if time is None:
+            time = getEpoch()
+            
         if self.save:
             if self.split_symbols:
-                self.db.execute("INSERT INTO '"+ticker+"' VALUES (?, ?, ?)", (volume, price, getEpoch()))
+                self.db.execute("INSERT INTO '"+ticker+"' VALUES (?, ?, ?)", (volume, price, time))
             else:
-                self.db.execute("INSERT INTO ticker_data VALUES (?, ?, ?, ?)", (volume, price, ticker, getEpoch()))
+                self.db.execute("INSERT INTO ticker_data VALUES (?, ?, ?, ?)", (volume, price, ticker, time))
             self.db.commit()
 
     # Connect to websocket
@@ -131,20 +134,24 @@ class ticker:
         try:
             self.states[symbol]['volume'] = data['volume']
         except KeyError:
-            self.states[symbol]['volume'] += 0
+            pass
         try:
             self.states[symbol]['price'] = data['lp']
         except KeyError:
-            self.states[symbol]['price'] += 0
+            pass
         try:
             self.states[symbol]['changePercentage'] = data['chp']
         except KeyError:
-            self.states[symbol]['changePercentage'] += 0
+            pass
         try:
             self.states[symbol]['change'] = data['ch']
         except KeyError:
-             self.states[symbol]['change'] += 0
-        self.insertData(self.states[symbol]['volume'], self.states[symbol]['price'], symbol)
+             pass
+        try:
+            self.states[symbol]['time'] = data['lp_time']
+        except KeyError:
+            pass
+        self.insertData(self.states[symbol]['volume'], self.states[symbol]['price'], symbol, self.states[symbol]['time'])
         if self.verbose:
             self.saves += 1
 
