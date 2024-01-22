@@ -1,6 +1,6 @@
 ![Visitors](https://visitor-badge.laobi.icu/badge?page_id=Hattorius.Tradingview-ticker)
 # Tradingview-ticker
-This Python tool reverse-engineers the connection to the TradingView ticker, allowing for real-time updates on price and volume via a WebSocket connection. It's specifically developed and tested on Python 3.11.6.
+This Python tool reverse-engineers the connection to the TradingView ticker, allowing for real-time updates on price and volume via a WebSocket connection.
 
 > **Important:** Ensure the main thread is continuously running, otherwise, the program will terminate. Use `while True: pass` if needed.
 
