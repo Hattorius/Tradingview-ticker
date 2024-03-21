@@ -1,4 +1,4 @@
-import asyncio, websockets, random, json, threading, time, sqlite3
+import asyncio, websockets, random, json, threading, time, sqlite3, sys, signal
 from datetime import datetime
 
 def createRandomToken(length=12):
@@ -25,6 +25,8 @@ class ticker:
         self.databaseName = database_name
         self.splitSymbols = split_symbols
         self.cb = None
+        self.db = False
+        self.run = True
 
         self.verbose = verbose
         if verbose:
@@ -79,7 +81,7 @@ class ticker:
         await self.authenticate()
         if self.save and not self.connected:
             await self.connectToDatabase()
-        while True:
+        while self.run:
             messages = await self.readMessage(await self.connection.recv())
             for message in messages:
                 self.parseMessage(message)
@@ -113,13 +115,15 @@ class ticker:
 
         await self.sendMessage("set_auth_token", ["unauthorized_user_token"])
         await self.sendMessage("chart_create_session", [self.cs, ""])
-        for symbol in self.symbols:
-            qs = "qs_" + createRandomToken()
-            await self.sendMessage("quote_create_session", [qs])
-            await self.sendMessage("quote_set_fields", [qs, "ch", "chp", "current_session", "description", "local_description", "language", "exchange", "fractional", "is_tradable", "lp", "lp_time", "minmov", "minmove2", "original_name", "pricescale", "pro_name", "short_name", "type", "update_mode", "volume", "currency_code", "rchp", "rtc"])
-            await self.sendMessage("quote_add_symbols",[qs, symbol, {"flags":["force_permission"]}])
-            await self.sendMessage("quote_fast_symbols", [qs, symbol])
-        return 0
+
+        q = createRandomToken()
+        qs = "qs_" + q
+        qsl = "qs_snapshoter_basic-symbol-quotes_" + q
+        await self.sendMessage("quote_create_session", [qs])
+        await self.sendMessage("quote_create_session", [qsl])
+        await self.sendMessage("quote_set_fields", [qsl, "base-currency-logoid", "ch", "chp", "currency-logoid", "currency_code", "currency_id", "base_currency_id", "current_session", "description", "exchange", "format", "fractional", "is_tradable", "language", "local_description", "listed_exchange", "logoid", "lp", "lp_time", "minmov", "minmove2", "original_name", "pricescale", "pro_name", "short_name", "type", "typespecs", "update_mode", "volume", "variable_tick_size", "value_unit_id"])
+        await self.sendMessage("quote_add_symbols", [qsl] + self.symbols)
+        await self.sendMessage("quote_fast_symbols", [qs] + self.symbols)
 
     # this is so fricking messy
     def parseMessage(self, message):
@@ -166,6 +170,7 @@ class ticker:
         self.loop = asyncio.new_event_loop()
         def _start(loop):
             asyncio.set_event_loop(loop)
+            self.run = True
             self.task = loop.create_task(self.connect())
             if self.verbose:
                 self.updateTask = loop.create_task(self.giveAnUpdate())
@@ -175,11 +180,24 @@ class ticker:
         t.start()
         self.thread = t
 
+        # register signal handlers
+        signal.signal(signal.SIGINT, self.cleanup_on_exit)  # SIGINT (Ctrl+C)
+        signal.signal(signal.SIGTERM, self.cleanup_on_exit) # SIGTERM (termination signal)
+
     # stop it :(
     def stop(self):
+        self.run = False
         self.task.cancel()
         if self.verbose:
             self.updateTask.cancel()
         self.loop.stop()
         self.thread.join()
-        self.db.close()
+
+        if self.db:
+            self.db.close()
+
+    def cleanup_on_exit(self, a, b):
+        print("Closing (can take a few seconds)")
+
+        self.stop()
+        sys.exit(0)
